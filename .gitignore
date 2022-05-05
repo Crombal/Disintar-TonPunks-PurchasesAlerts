@@ -28,3 +28,6 @@ ENV/
 # Python packages
 /**/dist/*
 node_modules/
+
+# Geckodriver log
+geckodriver.log
