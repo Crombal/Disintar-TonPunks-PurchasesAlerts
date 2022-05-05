@@ -18,21 +18,24 @@ class Config(BaseModel):
     Attributes
     ----------
     TON_PUNKS_COLLECTION_URL : str
-        Ton Punks collection url on disintar.io
+        The Ton Punks collection url on disintar.io
     LOAD_TIME : float
         Wait time of page load
+    MAX_PRICE : int
+        The maximum price up to which NFTs are searched for
     NFT_CARD_CONTAINER : str
-        Class name of nft card container div
+        The class name of nft card container div
     NFT_CARD_META : str
-        Class name of nft card meta div
+        The class name of nft card meta div
     NFT_CARD_PRICE : str
-        Class name of nft card price div
+        The class name of nft card price div
     NFT_CARD_TITLE : str
-        Class name of nft card title h1
+        The class name of nft card title h1
     """
 
     TON_PUNKS_COLLECTION_URL: str
     LOAD_TIME: float
+    MAX_PRICE: int
     NFT_CARD_CONTAINER: str
     NFT_CARD_META: str
     NFT_CARD_PRICE: str
@@ -42,6 +45,7 @@ class Config(BaseModel):
         """This method returns the string representation of the Config"""
         return (f'TON_PUNKS_COLLECTION_URL: {self.TON_PUNKS_COLLECTION_URL}\n'
                 f'LOAD_TIME: {self.LOAD_TIME}\n'
+                f'MAX_PRICE: {self.MAX_PRICE}\n'
                 f'NFT_CARD_CONTAINER: {self.NFT_CARD_CONTAINER}\n'
                 f'NFT_CARD_META: {self.NFT_CARD_META}\n'
                 f'NFT_CARD_PRICE: {self.NFT_CARD_PRICE}\n'
@@ -59,6 +63,7 @@ def _load_config() -> Config:
 
     loaded_config = Config(TON_PUNKS_COLLECTION_URL=DISINTAR['TON_PUNKS_COLLECTION_URL'],
                            LOAD_TIME=DISINTAR['LOAD_TIME'],
+                           MAX_PRICE=DISINTAR['MAX_PRICE'],
                            NFT_CARD_CONTAINER=DISINTAR_CLASS_NAME_DIV['NFT_CARD_CONTAINER'],
                            NFT_CARD_META=DISINTAR_CLASS_NAME_DIV['NFT_CARD_META'],
                            NFT_CARD_PRICE=DISINTAR_CLASS_NAME_DIV['NFT_CARD_PRICE'],

@@ -1,6 +1,7 @@
 DISINTAR:
   TON_PUNKS_COLLECTION_URL: https://beta.disintar.io/collection/UQAo92DYMokxghKcq-CkCGSk_MgXY5Fo1SPW20gkvZl75n1I
   LOAD_TIME: 1.5
+  MAX_PRICE: 1500
   CLASS_NAME:
     DIV:
       NFT_CARD_CONTAINER: NFTCard__container___2XJg7
