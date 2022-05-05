@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "Disintar-TonPunks-PurchasesAlerts"
+version = "0.1.0"
+description = ""
+authors = ["anton.treushchenko <anton.treushchenko@gmail.com"]
+
+[tool.mypy]
+disallow_any_generics = true
+disallow_incomplete_defs = true
+disallow_untyped_defs = true
+implicit_reexport = true
+pretty = true
+show_error_context = true
+show_error_codes = true
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pydantic = "^1.9.0"
+loguru = "^0.6.0"
+
+[tool.poetry.dev-dependencies]
+mypy = "^0.910"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
