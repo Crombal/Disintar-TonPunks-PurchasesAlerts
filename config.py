@@ -1,8 +1,12 @@
 # !/usr/bin/env python
 """Script for load config values from config file"""
 
+import sys
 import yaml
 from pydantic import BaseModel
+from loguru import logger
+
+logger.add(sys.stdout, format='{time} {level} {message}', filter='my_module', level='INFO')
 
 
 class Config(BaseModel):
@@ -34,6 +38,15 @@ class Config(BaseModel):
     NFT_CARD_PRICE: str
     NFT_CARD_TITLE: str
 
+    def __str__(self) -> str:
+        """This method returns the string representation of the Config"""
+        return (f'TON_PUNKS_COLLECTION_URL: {self.TON_PUNKS_COLLECTION_URL}\n'
+                f'LOAD_TIME: {self.LOAD_TIME}\n'
+                f'NFT_CARD_CONTAINER: {self.NFT_CARD_CONTAINER}\n'
+                f'NFT_CARD_META: {self.NFT_CARD_META}\n'
+                f'NFT_CARD_PRICE: {self.NFT_CARD_PRICE}\n'
+                f'NFT_CARD_TITLE: {self.NFT_CARD_TITLE}')
+
 
 def _load_config() -> Config:
     """Load config values from config file and pass them to the Config"""
@@ -44,11 +57,12 @@ def _load_config() -> Config:
     DISINTAR_CLASS_NAME_DIV = DISINTAR_CLASS_NAME['DIV']
     DISINTAR_CLASS_NAME_H1 = DISINTAR_CLASS_NAME['H1']
 
-    return Config(
-        TON_PUNKS_COLLECTION_URL=DISINTAR['TON_PUNKS_COLLECTION_URL'],
-        LOAD_TIME=DISINTAR['LOAD_TIME'],
-        NFT_CARD_CONTAINER=DISINTAR_CLASS_NAME_DIV['NFT_CARD_CONTAINER'],
-        NFT_CARD_META=DISINTAR_CLASS_NAME_DIV['NFT_CARD_META'],
-        NFT_CARD_PRICE=DISINTAR_CLASS_NAME_DIV['NFT_CARD_PRICE'],
-        NFT_CARD_TITLE=DISINTAR_CLASS_NAME_H1['NFT_CARD_TITLE']
-    )
+    loaded_config = Config(TON_PUNKS_COLLECTION_URL=DISINTAR['TON_PUNKS_COLLECTION_URL'],
+                           LOAD_TIME=DISINTAR['LOAD_TIME'],
+                           NFT_CARD_CONTAINER=DISINTAR_CLASS_NAME_DIV['NFT_CARD_CONTAINER'],
+                           NFT_CARD_META=DISINTAR_CLASS_NAME_DIV['NFT_CARD_META'],
+                           NFT_CARD_PRICE=DISINTAR_CLASS_NAME_DIV['NFT_CARD_PRICE'],
+                           NFT_CARD_TITLE=DISINTAR_CLASS_NAME_H1['NFT_CARD_TITLE'])
+
+    logger.info(f'Successfully loaded config:\n{loaded_config}')
+    return loaded_config
