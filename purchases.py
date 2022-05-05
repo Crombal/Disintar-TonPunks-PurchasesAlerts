@@ -10,7 +10,7 @@ from loguru import logger
 from config import Config
 from config import _load_config
 from driver import _load_driver
-from typing import Dict, List, Union
+from typing import List
 from pydantic import BaseModel
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -21,7 +21,7 @@ from webdriver_manager.firefox import GeckoDriverManager  # type: ignore
 logger.add(sys.stdout, format='{time} {level} {message}', filter='my_module', level='INFO')
 
 
-class SurfaceTonPunkNft(BaseModel):
+class SurfaceTonPunkNFT(BaseModel):
     """
     A class to represent a Surface Ton Punk NFT.
 
@@ -41,7 +41,7 @@ class SurfaceTonPunkNft(BaseModel):
 
 CONFIG: Config = _load_config()
 DRIVER: webdriver.Firefox = _load_driver().driver
-SURFACE_NFTS_DB: List[SurfaceTonPunkNft] = []
+SURFACE_NFTS_DB: List[SurfaceTonPunkNFT] = []
 
 
 def _load_page(driver: webdriver.Firefox, url: str) -> None:
@@ -102,7 +102,7 @@ def _load_nfts(page: str) -> bool:
     return True
 
 
-def _surface_parse_nft(nft_raw: Tag) -> SurfaceTonPunkNft:
+def _surface_parse_nft(nft_raw: Tag) -> SurfaceTonPunkNFT:
     """
     Surface NFT parsing
 
@@ -113,7 +113,7 @@ def _surface_parse_nft(nft_raw: Tag) -> SurfaceTonPunkNft:
      - SurfaceTonPunkNft - Surface parsed NFT
     """
     nft_meta_tag = nft_raw.find('div', class_=CONFIG.NFT_CARD_META)
-    return SurfaceTonPunkNft(
+    return SurfaceTonPunkNFT(
         name=nft_meta_tag.find('h1', class_=CONFIG.NFT_CARD_TITLE).text,  # type: ignore
         price=nft_meta_tag.find('div', class_=CONFIG.NFT_CARD_PRICE).find('p').text.split(' ')[0]  # type: ignore
     )
