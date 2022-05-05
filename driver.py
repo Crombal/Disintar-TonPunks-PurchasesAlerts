@@ -2,6 +2,7 @@
 """Script for initialize a web driver"""
 
 import sys
+
 from loguru import logger
 from typing import Any
 from pydantic import BaseModel
@@ -45,7 +46,7 @@ class FirefoxDriver(BaseModel):
 
 def __load_options() -> _FirefoxOptions:
     """Load options to the Firefox web driver"""
-    firefox_options = _FirefoxOptions(options=webdriver.FirefoxOptions())  # type: ignore
+    firefox_options = _FirefoxOptions(options=webdriver.FirefoxOptions())
     firefox_options.options.set_preference('general.useragent.override', UserAgent().random)  # user-agent
     firefox_options.options.set_preference('dom.webdriver.enabled', False)  # disable webdriver mode
     firefox_options.options.headless = True  # headless mode
@@ -57,6 +58,6 @@ def _load_driver() -> FirefoxDriver:
     """Set options to the Firefox web driver and load it"""
     service = Service(GeckoDriverManager().install())
     options = __load_options().options
-    firefox_driver = FirefoxDriver(driver=webdriver.Firefox(service=service, options=options))  # type: ignore
+    firefox_driver = FirefoxDriver(driver=webdriver.Firefox(service=service, options=options))
     logger.info('Successfully loaded Firefox webdriver with options')
     return firefox_driver
