@@ -59,14 +59,14 @@ def _load_page(driver: webdriver.Firefox, url: str) -> None:
         driver.get(url=url)
         logger.info(f'Driver go to the {url}')
         # Wait for load page
-        time.sleep(CONFIG.LOAD_TIME)
+        time.sleep(CONFIG.DISINTAR_LOAD_TIME)
         # Get scroll height
         last_height = driver.execute_script('return document.body.scrollHeight')
         while _load_nfts(page=driver.page_source):
             # Scroll down to bottom
             driver.execute_script('window.scrollTo(0, document.body.scrollHeight);')
             # Wait for load page
-            time.sleep(CONFIG.LOAD_TIME)
+            time.sleep(CONFIG.DISINTAR_LOAD_TIME)
             # Calculate new scroll height and compare with last scroll height
             new_height = driver.execute_script('return document.body.scrollHeight')
             if new_height == last_height:
@@ -91,12 +91,12 @@ def _load_nfts(page: str) -> bool:
      - bool - if NFT`s price < 1500 return True, else - False
     """
     soup = BeautifulSoup(page, 'lxml')
-    all_nfts = soup.find_all('div', class_=CONFIG.NFT_CARD_CONTAINER)
+    all_nfts = soup.find_all('div', class_=CONFIG.DISINTAR_CLASS_NAME_DIV_NFT_CARD_CONTAINER)
     unique_nfts = all_nfts if len(SURFACE_NFTS_DB) == 0 else all_nfts[len(SURFACE_NFTS_DB):]
     logger.info(f'Find {len(unique_nfts)} new unique NFTs')
     for nft_raw in unique_nfts:
         nft = _surface_parse_nft(nft_raw)
-        if nft.price >= CONFIG.MAX_PRICE:
+        if nft.price >= CONFIG.DISINTAR_MAX_PRICE:
             return False
         SURFACE_NFTS_DB.append(nft)
     return True
@@ -112,15 +112,16 @@ def _surface_parse_nft(nft_raw: Tag) -> SurfaceTonPunkNFT:
     :Returns:
      - SurfaceTonPunkNft - Surface parsed NFT
     """
-    nft_meta_tag = nft_raw.find('div', class_=CONFIG.NFT_CARD_META)
+    nft_meta_tag = nft_raw.find('div', class_=CONFIG.DISINTAR_CLASS_NAME_DIV_NFT_CARD_META)
     return SurfaceTonPunkNFT(
-        name=nft_meta_tag.find('h1', class_=CONFIG.NFT_CARD_TITLE).text,  # type: ignore
-        price=nft_meta_tag.find('div', class_=CONFIG.NFT_CARD_PRICE).find('p').text.split(' ')[0]  # type: ignore
+        name=nft_meta_tag.find('h1', class_=CONFIG.DISINTAR_CLASS_NAME_H1_NFT_CARD_TITLE).text,  # type: ignore
+        price=nft_meta_tag.find('div',  # type: ignore
+                                class_=CONFIG.DISINTAR_CLASS_NAME_DIV_NFT_CARD_PRICE).find('p').text.split(' ')[0]
     )
 
 
 def main() -> None:
-    _load_page(DRIVER, CONFIG.TON_PUNKS_COLLECTION_URL)
+    _load_page(DRIVER, CONFIG.DISINTAR_TON_PUNKS_COLLECTION_URL)
     logger.info(f'Successfully surface parsed {len(SURFACE_NFTS_DB)} NFTs')
 
 
