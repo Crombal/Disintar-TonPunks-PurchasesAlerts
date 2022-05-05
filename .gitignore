@@ -1,0 +1,30 @@
+# Mypy cache
+.mypy_cache/
+
+# Pytest cache
+.pytest_cache/
+
+# Byte-compiled / optimized / DLL files
+pycache/
+__pycache__
+*$py.class
+*.pyc
+
+# IDEA
+.idea/
+
+# IntelliJ IDEA's module files
+*.iml
+
+# virtualenv
+.venv
+venv*/
+ENV/
+
+# Pytest files
+**/.coverage
+.reports/
+
+# Python packages
+/**/dist/*
+node_modules/
