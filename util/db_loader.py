@@ -7,6 +7,7 @@ import json
 from loguru import logger
 from typing import Dict, List
 from pydantic import BaseModel
+from time_measure_decorator import timeit
 
 logger.add(sys.stdout, format='{time} {level} {message}', filter='my_module', level='INFO')
 
@@ -35,6 +36,7 @@ class TonPunk(BaseModel):
     rating_rank: int
 
 
+@timeit
 def load_db() -> List[TonPunk]:
     """
     Load TON PUNKS information from json DB
