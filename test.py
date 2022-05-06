@@ -19,6 +19,10 @@ FULL_NFTS_DB = []
 start_time = time.time()
 
 
+async def gather_data(pages_count, limit):
+    await asyncio.gather(*[load_page_content(page, limit) for page in range(pages_count)])
+
+
 async def load_page_content(page, limit):
     data = '------WebKitFormBoundaryG1LvLS9n9u7btjdI\r\n' \
            'Content-Disposition: form-data; name="entity_name"\r\n\r\nNFT\r\n' \
@@ -38,31 +42,28 @@ async def load_page_content(page, limit):
 
     async with aiohttp.ClientSession() as session:
         response = await session.post(url='https://beta.disintar.io/api/get_entities/', cookies=cookies,
-                                      headers=headers, data=data, verify=False)
-
-    response = requests.post('https://beta.disintar.io/api/get_entities/', cookies=cookies, headers=headers, data=data,
-                             verify=False)
-    parse_nfts(response.json())
+                                      headers=headers, data=data)
+        await parse_nfts(await response.json())
 
 
-def parse_nfts(json_response):
-    for nft in json_response['data']:
-        FULL_NFTS_DB.append({
-            'name': nft['name'],
-            'price': nft['price'],
-            'address': nft['address'],
-            'owner': nft['owner']['wallet_address'],
-            'is_selling': nft['is_selling']
-        })
-    print(len(FULL_NFTS_DB))
+async def parse_nfts(json_response):
+    await asyncio.gather(*[parse_nft(nft) for nft in json_response['data']])
+
+
+async def parse_nft(nft):
+    FULL_NFTS_DB.append({
+        'name': nft['name'],
+        'price': nft['price'],
+        'address': nft['address'],
+        'owner': nft['owner']['wallet_address'],
+        'is_selling': nft['is_selling']
+    })
 
 
 def main():
-    n = 0
-    while n < 8:
-        load_page_content(n, 655)
-        n += 1
+    asyncio.run(gather_data(256, 21))
     finish_time = time.time() - start_time
+    print(len(FULL_NFTS_DB))
     print(f"Затраченное на работу скрипта время: {finish_time}")
 
 
