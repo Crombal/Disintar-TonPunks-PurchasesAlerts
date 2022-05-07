@@ -4,9 +4,8 @@ import math
 import sys
 
 from loguru import logger
-from typing import List, Optional, Union, Dict, Any
+from typing import List, Optional, Dict, Any
 from pydantic import BaseModel
-from util.time_measure_decorator import timeit
 from config.disintar_curl_config import cookies, headers, URL, data
 
 logger.add(sys.stdout, format='{time} {level} {message}', filter='my_module', level='INFO')
@@ -82,7 +81,7 @@ async def _parse_nft(nft: Dict[str, Any], state: List[TonPunkPurchase]) -> None:
 
     :Args:
      - state: List[TonPunkPurchase] - state with TON PUNKS
-     - nft: Union[int, slice] - unparsed NFT
+     - nft: Dict[str, Any] - unparsed NFT
     """
     state.append(TonPunkPurchase(
         name=nft['name'],
@@ -92,7 +91,7 @@ async def _parse_nft(nft: Dict[str, Any], state: List[TonPunkPurchase]) -> None:
     )
 
 
-async def _get_purchased_nfts(previous_ton_punks_state: List[TonPunkPurchase],
+def _get_purchased_nfts(previous_ton_punks_state: List[TonPunkPurchase],
                         current_ton_punks_state: List[TonPunkPurchase]) -> List[TonPunkPurchase]:
     """
     Compare previous and current states with TON PUNKS
@@ -100,8 +99,8 @@ async def _get_purchased_nfts(previous_ton_punks_state: List[TonPunkPurchase],
     Checks if TON PUNK matches the conditions
 
     :Args:
-     - state: List[TonPunkPurchase] - state with TON PUNKS
-     - nft: Union[int, slice] - unparsed NFT
+     - previous_ton_punks_state: List[TonPunkPurchase] - previous TON PUNKS state
+     - current_ton_punks_state: List[TonPunkPurchase] - current TON PUNKS state
 
     :Return:
      - List[TonPunkPurchase] - return matches TON PUNKS
@@ -116,26 +115,33 @@ async def _get_purchased_nfts(previous_ton_punks_state: List[TonPunkPurchase],
     return purchases_ton_punks
 
 
-@timeit
 def streaming_of_purchased_nfts() -> None:
+    """
+    Main application
+    Streaming new purchases TON PUNKS NFTs
+    """
     previous_ton_punks_state: List[TonPunkPurchase] = []
     current_ton_punks_state: List[TonPunkPurchase] = []
 
-    asyncio.run(_gather_data(256, 21, previous_ton_punks_state)) if not previous_ton_punks_state \
-        else asyncio.run(_gather_data(256, 21, current_ton_punks_state))
+    logger.info('Start streaming new purchases TON PUNKS NFTs')
 
-    if not current_ton_punks_state:
-        asyncio.run(_gather_data(256, 21, current_ton_punks_state))
+    while True:
+        asyncio.run(_gather_data(256, 21, previous_ton_punks_state)) if not previous_ton_punks_state \
+            else asyncio.run(_gather_data(256, 21, current_ton_punks_state))
 
-    previous_ton_punks_state = sorted(previous_ton_punks_state, key=lambda punk: punk.name)
-    current_ton_punks_state = sorted(current_ton_punks_state, key=lambda punk: punk.name)
+        if not current_ton_punks_state:
+            asyncio.run(_gather_data(256, 21, current_ton_punks_state))
 
-    logger.info(f'Previous TON PUNKS state size: {len(previous_ton_punks_state)}')
-    logger.info(f'Current TON PUNKS state size: {len(current_ton_punks_state)}')
+        previous_ton_punks_state = sorted(previous_ton_punks_state, key=lambda punk: punk.name)
+        current_ton_punks_state = sorted(current_ton_punks_state, key=lambda punk: punk.name)
 
-    purchases_ton_punks = _get_purchased_nfts(previous_ton_punks_state, current_ton_punks_state)
+        purchases_ton_punks = _get_purchased_nfts(previous_ton_punks_state, current_ton_punks_state)
 
-    logger.info(f'Count of purchases TON PUNKS: {len(purchases_ton_punks)}')
+        if purchases_ton_punks:
+            logger.info(f'Found {len(purchases_ton_punks)} new purchases TON PUNKS')
+
+        previous_ton_punks_state = current_ton_punks_state
+        current_ton_punks_state = []
 
 
 if __name__ == "__main__":
