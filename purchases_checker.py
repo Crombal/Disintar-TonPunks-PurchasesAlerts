@@ -59,12 +59,9 @@ async def _load_page_content(page: int, limit: int, state: List[TonPunkPurchase]
      - page: int - number of the page with NFTs
      - limit: int - limit of NFTs per page
     """
-    try:
-        async with aiohttp.ClientSession() as session:
-            response = await session.post(url=URL, cookies=cookies, headers=headers, data=data(page, limit))
-            await _parse_nfts(await response.json(), state)
-    except Exception as e:
-        logger.error(e)
+    async with aiohttp.ClientSession() as session:
+        response = await session.post(url=URL, cookies=cookies, headers=headers, data=data(page, limit))
+        await _parse_nfts(await response.json(), state)
 
 
 async def _parse_nfts(json_response: Any, state: List[TonPunkPurchase]) -> None:
@@ -123,20 +120,28 @@ def streaming_of_purchased_nfts() -> None:
     Main application
     Streaming new purchases TON PUNKS NFTs
     """
+    backup_previous_ton_punks_state: List[TonPunkPurchase] = []
     previous_ton_punks_state: List[TonPunkPurchase] = []
     current_ton_punks_state: List[TonPunkPurchase] = []
 
     logger.info('Start streaming new purchases TON PUNKS NFTs')
 
     while True:
-        asyncio.run(_gather_data(256, 21, previous_ton_punks_state)) if not previous_ton_punks_state \
-            else asyncio.run(_gather_data(256, 21, current_ton_punks_state))
+        try:
+            asyncio.run(_gather_data(256, 21, previous_ton_punks_state)) if not previous_ton_punks_state \
+                else asyncio.run(_gather_data(256, 21, current_ton_punks_state))
 
-        if not current_ton_punks_state:
-            asyncio.run(_gather_data(256, 21, current_ton_punks_state))
+            if not current_ton_punks_state:
+                asyncio.run(_gather_data(256, 21, current_ton_punks_state))
+        except Exception as e:
+            logger.error(e)
+            previous_ton_punks_state = backup_previous_ton_punks_state
+            current_ton_punks_state = []
+            continue
 
         previous_ton_punks_state = sorted(previous_ton_punks_state, key=lambda punk: punk.name)
         current_ton_punks_state = sorted(current_ton_punks_state, key=lambda punk: punk.name)
+        backup_previous_ton_punks_state = previous_ton_punks_state
 
         purchases_ton_punks = _get_purchased_nfts(previous_ton_punks_state, current_ton_punks_state)
 
