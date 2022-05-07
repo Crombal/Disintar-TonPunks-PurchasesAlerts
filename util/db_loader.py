@@ -4,10 +4,10 @@
 import sys
 import json
 
+from typing import List
 from loguru import logger
-from typing import Dict, List
 from pydantic import BaseModel
-from time_measure_decorator import timeit
+from util.time_measure_decorator import timeit
 
 logger.add(sys.stdout, format='{time} {level} {message}', filter='my_module', level='INFO')
 

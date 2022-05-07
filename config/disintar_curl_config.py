@@ -1,19 +1,27 @@
 import datetime
+from typing import Dict
 
-cookies = {
+cookies: Dict[str, str] = {
     'csrftoken': '2bO3htOkdY9iqh3kyZVjFKTt25OxmJxVRCewXXnNTm1DRH5WVTy0w4EWsL7RTRWR',
 }
 
-headers = {
+headers: Dict[str, str] = {
     'X-Csrftoken': '2bO3htOkdY9iqh3kyZVjFKTt25OxmJxVRCewXXnNTm1DRH5WVTy0w4EWsL7RTRWR',
     'Content-Type': 'multipart/form-data; boundary=----WebKitFormBoundaryG1LvLS9n9u7btjdI',
     'Referer': 'https://beta.disintar.io/collection/UQAo92DYMokxghKcq-CkCGSk_MgXY5Fo1SPW20gkvZl75n1I',
 }
 
-url = 'https://beta.disintar.io/api/get_entities/'
+URL: str = 'https://beta.disintar.io/api/get_entities/'
 
 
-def data(page, limit):
+def data(page: int, limit: int) -> str:
+    """
+    Generate data for the post request
+
+    :Args:
+     - page: int - number of the page with NFTs
+     - limit: int - limit of NFTs per page
+    """
     return '------WebKitFormBoundaryG1LvLS9n9u7btjdI\r\n' \
            'Content-Disposition: form-data; name="entity_name"\r\n\r\nNFT\r\n' \
            '------WebKitFormBoundaryG1LvLS9n9u7btjdI\r\n' \
