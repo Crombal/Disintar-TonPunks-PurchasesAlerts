@@ -141,7 +141,6 @@ def streaming_of_purchased_nfts() -> None:
 
         previous_ton_punks_state = sorted(previous_ton_punks_state, key=lambda punk: punk.name)
         current_ton_punks_state = sorted(current_ton_punks_state, key=lambda punk: punk.name)
-        backup_previous_ton_punks_state = previous_ton_punks_state
 
         purchases_ton_punks = _get_purchased_nfts(previous_ton_punks_state, current_ton_punks_state)
 
@@ -149,6 +148,7 @@ def streaming_of_purchased_nfts() -> None:
             logger.info(f'Found {len(purchases_ton_punks)} new purchases TON PUNKS')
 
         previous_ton_punks_state = current_ton_punks_state
+        backup_previous_ton_punks_state = previous_ton_punks_state
         current_ton_punks_state = []
 
 
