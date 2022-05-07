@@ -2,11 +2,11 @@ import datetime
 from typing import Dict
 
 cookies: Dict[str, str] = {
-    'csrftoken': '2bO3htOkdY9iqh3kyZVjFKTt25OxmJxVRCewXXnNTm1DRH5WVTy0w4EWsL7RTRWR',
+    'csrftoken': 'QXIUnBc6LczTLO7raqgJIHLzRi6xjN2kNIGNhWOaYagHgDd1REf3YUs3vlCF31Ii',
 }
 
 headers: Dict[str, str] = {
-    'X-Csrftoken': '2bO3htOkdY9iqh3kyZVjFKTt25OxmJxVRCewXXnNTm1DRH5WVTy0w4EWsL7RTRWR',
+    'X-Csrftoken': 'QXIUnBc6LczTLO7raqgJIHLzRi6xjN2kNIGNhWOaYagHgDd1REf3YUs3vlCF31Ii',
     'Content-Type': 'multipart/form-data; boundary=----WebKitFormBoundaryG1LvLS9n9u7btjdI',
     'Referer': 'https://beta.disintar.io/collection/UQAo92DYMokxghKcq-CkCGSk_MgXY5Fo1SPW20gkvZl75n1I',
 }
