@@ -59,9 +59,12 @@ async def _load_page_content(page: int, limit: int, state: List[TonPunkPurchase]
      - page: int - number of the page with NFTs
      - limit: int - limit of NFTs per page
     """
-    async with aiohttp.ClientSession() as session:
-        response = await session.post(url=URL, cookies=cookies, headers=headers, data=data(page, limit))
-        await _parse_nfts(await response.json(), state)
+    try:
+        async with aiohttp.ClientSession() as session:
+            response = await session.post(url=URL, cookies=cookies, headers=headers, data=data(page, limit))
+            await _parse_nfts(await response.json(), state)
+    except Exception as e:
+        logger.error(e)
 
 
 async def _parse_nfts(json_response: Any, state: List[TonPunkPurchase]) -> None:
