@@ -133,10 +133,19 @@ class TonPunkPurchaseChecker:
 
         purchases_ton_punks: List[TonPunkPurchase] = []
 
-        for matched in (current for current in enumerate(self.__current_ton_punks_state) if
-                        current[1].is_selling and
-                        current[1].price != self.__previous_ton_punks_state[current[0]].price):
-            purchases_ton_punks.append(matched[1])
+        # for current in self.__current_ton_punks_state:
+        #     for previous in self.__previous_ton_punks_state:
+        #         if current.is_selling and current.name == previous.name and current.price != previous.price:
+        #             purchases_ton_punks.append(current)
+
+        [
+            purchases_ton_punks.append(current) for current in
+            self.__current_ton_punks_state for previous in
+            self.__previous_ton_punks_state if
+            current.is_selling and
+            current.name == previous.name and
+            current.price != previous.price
+        ]
 
         return purchases_ton_punks
 
