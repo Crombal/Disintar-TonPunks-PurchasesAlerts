@@ -10,7 +10,7 @@ from loguru import logger
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel
 from util.time_measure_decorator import timeit
-from config.disintar_curl_config import cookies, headers, URL, data
+from util.disintar_curl_config import DisintarCurlConfigs
 
 logger.add(sys.stdout, format='{time} {level} {message}', filter='my_module', level='INFO')
 
@@ -60,10 +60,6 @@ class TonPunkDBCreator:
         Init TonPunkPurchaseChecker instance
 
         :Args:
-         - pages_count_disintar : int
-            count of pages with TON PUNK NFTs at disintar.io
-         - nft_limit_per_page_disintar : int
-            limit of NFTs per page
          - pages_count_tonnft : int
             count of pages with TON PUNK NFTs at tonnft.tools
          - tonnft_db : List[TonPunk]
@@ -74,19 +70,18 @@ class TonPunkDBCreator:
             TON PUNKS DB merged from tonnft_db and disintar_db
         """
 
-        self.__pages_count_disintar = pages_count_disintar
-        self.__nft_limit_per_page_disintar = nft_limit_per_page_disintar
         self.__pages_count_tonnft = pages_count_tonnft
         self.__tonnft_db: List[TonPunk] = []
         self.__disintar_db: List[TonPunk] = []
         self.__ton_punks_db: List[TonPunk] = []
+        self.__config: DisintarCurlConfigs = DisintarCurlConfigs({}, {})
 
     async def __gather_data_disintar(self) -> None:
         """
         Async call to __load_page_content_disintar()
         """
 
-        await asyncio.gather(*[self.__load_page_content_disintar(page) for page in range(self.__pages_count_disintar)])
+        await asyncio.gather(*[self.__load_page_content_disintar(page) for page in range(self.__config.COUNT_OF_PAGES)])
 
     async def __load_page_content_disintar(self, page: int) -> None:
         """
@@ -98,10 +93,10 @@ class TonPunkDBCreator:
 
         async with aiohttp.ClientSession() as session:
             response = await session.post(
-                url=URL,
-                cookies=cookies,
-                headers=headers,
-                data=data(page, self.__nft_limit_per_page_disintar)
+                url=self.__config.API_URL,
+                cookies=self.__config.cookies,
+                headers=self.__config.headers,
+                data=self.__config.data(page)
             )
             await self.__parse_nfts_disintar(await response.json())
 
@@ -216,7 +211,7 @@ class TonPunkDBCreator:
         asyncio.run(self.__load_full_nfts())
         logger.info(f'TON PUNKS DB size: {len(self.__ton_punks_db)}')
 
-        with open("punks_db.json", "w") as json_db:
+        with open("punks1_db.json", "w") as json_db:
             json.dump(
                 sorted(self.__ton_punks_db, key=lambda punk: punk.rating_rank),  # type: ignore
                 json_db,

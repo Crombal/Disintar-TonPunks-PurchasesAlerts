@@ -6,9 +6,9 @@ import math
 import sys
 
 from loguru import logger
-from typing import List, Optional, Dict, Any
 from pydantic import BaseModel
-from config.disintar_curl_config import cookies, headers, URL, data
+from typing import List, Optional, Dict, Any
+from util.disintar_curl_config import DisintarCurlConfigs
 
 logger.add(sys.stdout, format='{time} {level} {message}', filter='my_module', level='INFO')
 
@@ -45,15 +45,11 @@ class TonPunkPurchaseChecker:
     A class to represent a purchase checker for Ton Punk NFT
     """
 
-    def __init__(self, pages_count: int, nft_limit_per_page: int):
+    def __init__(self) -> None:
         """
         Init TonPunkPurchaseChecker instance
 
         :Args:
-         - pages_count : int
-            count of pages with TON PUNK NFTs at disintar.io
-         - nft_limit_per_page : int
-            limit of NFTs per page
          - backup_ton_punks_state : List[TonPunkPurchase]
             backup TON PUNKS state
             use when exceptions was handled
@@ -63,12 +59,11 @@ class TonPunkPurchaseChecker:
             TON PUNKS state that used to compare current state with previous
         """
 
-        self.__pages_count = pages_count
-        self.__nft_limit_per_page = nft_limit_per_page
         self.__backup_ton_punks_state: List[TonPunkPurchase] = []
         self.__previous_ton_punks_state: List[TonPunkPurchase] = []
         self.__current_ton_punks_state: List[TonPunkPurchase] = []
         self.__is_current_state: bool = False
+        self.__config: DisintarCurlConfigs = DisintarCurlConfigs({}, {})
 
     async def __gather_data(self, is_current_state: bool) -> None:
         """
@@ -80,7 +75,7 @@ class TonPunkPurchaseChecker:
 
         self.__is_current_state = is_current_state
 
-        await asyncio.gather(*[self.__load_page_content(page) for page in range(self.__pages_count)])
+        await asyncio.gather(*[self.__load_page_content(page) for page in range(self.__config.COUNT_OF_PAGES)])
 
     async def __load_page_content(self, page: int) -> None:
         """
@@ -92,10 +87,10 @@ class TonPunkPurchaseChecker:
 
         async with aiohttp.ClientSession() as session:
             response = await session.post(
-                url=URL,
-                cookies=cookies,
-                headers=headers,
-                data=data(page, self.__nft_limit_per_page)
+                url=self.__config.API_URL,
+                cookies=self.__config.cookies,
+                headers=self.__config.headers,
+                data=self.__config.data(page)
             )
             await self.__parse_nfts(await response.json())
 
@@ -163,6 +158,9 @@ class TonPunkPurchaseChecker:
                     asyncio.run(self.__gather_data(True))
             except Exception as e:
                 logger.error(e)
+                logger.info('Reset csrf token')
+
+                self.__config.reset_csrf()
 
                 self.__previous_ton_punks_state = self.__backup_ton_punks_state
                 self.__previous_ton_punks_state = []
@@ -180,3 +178,15 @@ class TonPunkPurchaseChecker:
             self.__previous_ton_punks_state = self.__current_ton_punks_state
             self.__backup_ton_punks_state = self.__previous_ton_punks_state
             self.__current_ton_punks_state = []
+
+
+def main() -> None:
+    """
+    Run script for streaming purchased TON PUNKS NFTs
+    """
+
+    TonPunkPurchaseChecker().streaming_of_purchased_nfts()
+
+
+if __name__ == "__main__":
+    main()
