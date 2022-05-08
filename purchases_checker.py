@@ -38,119 +38,139 @@ class TonPunkPurchase(BaseModel):
     is_selling: bool
 
 
-async def _gather_data(pages_count: int, limit: int, state: List[TonPunkPurchase]) -> None:
+class TonPunkPurchaseChecker:
     """
-    Async call to _load_page_content()
-
-    :Args:
-     - state: List[TonPunkPurchase] - state with TON PUNKS
-     - pages_count: int - count of the pages with NFTs
-     - limit: int - limit of the NFTs per page
+    A class to represent a purchase checker for Ton Punk NFT
     """
-    await asyncio.gather(*[_load_page_content(page, limit, state) for page in range(pages_count)])
 
+    def __init__(self, pages_count: int, nft_limit_per_page: int):
+        """
+        Init TonPunkPurchaseChecker instance
 
-async def _load_page_content(page: int, limit: int, state: List[TonPunkPurchase]) -> None:
-    """
-    Async load content of the page with NFTs
+        :Args:
+         - pages_count : int
+            count of pages with TON PUNK NFTs at disintar.io
+         - nft_limit_per_page : int
+            limit of NFTs per page
+         - backup_ton_punks_state : List[TonPunkPurchase]
+            backup TON PUNKS state
+            use when exceptions was handled
+         - previous_ton_punks_state : List[TonPunkPurchase]
+            TON PUNKS state that used to compare previous state with current
+         - current_ton_punks_state : List[TonPunkPurchase]
+            TON PUNKS state that used to compare current state with previous
+        """
 
-    :Args:
-     - state: List[TonPunkPurchase] - state with TON PUNKS
-     - page: int - number of the page with NFTs
-     - limit: int - limit of NFTs per page
-    """
-    async with aiohttp.ClientSession() as session:
-        response = await session.post(url=URL, cookies=cookies, headers=headers, data=data(page, limit))
-        await _parse_nfts(await response.json(), state)
+        self.__pages_count = pages_count
+        self.__nft_limit_per_page = nft_limit_per_page
+        self.__backup_ton_punks_state: List[TonPunkPurchase] = []
+        self.__previous_ton_punks_state: List[TonPunkPurchase] = []
+        self.__current_ton_punks_state: List[TonPunkPurchase] = []
+        self.__is_current_state: bool = False
 
+    async def __gather_data(self, is_current_state: bool) -> None:
+        """
+        Async call to _load_page_content()
 
-async def _parse_nfts(json_response: Any, state: List[TonPunkPurchase]) -> None:
-    """
-    Async call to _parse_nft()
+        :Args:
+         - is_current_state: bool - check if this state is current
+        """
 
-    :Args:
-     - state: List[TonPunkPurchase] - state with TON PUNKS
-     - json_response: Any - response from page in json format
-    """
-    await asyncio.gather(*[_parse_nft(nft, state) for nft in json_response['data']])
+        self.__is_current_state = is_current_state
 
+        await asyncio.gather(*[self.__load_page_content(page) for page in range(self.__pages_count)])
 
-async def _parse_nft(nft: Dict[str, Any], state: List[TonPunkPurchase]) -> None:
-    """
-    Parse NFT to TonPunkPurchase and append it to the ${VERSION}_TON_PUNKS_STATE
+    async def __load_page_content(self, page: int) -> None:
+        """
+        Async load content of the page with NFTs
 
-    :Args:
-     - state: List[TonPunkPurchase] - state with TON PUNKS
-     - nft: Dict[str, Any] - unparsed NFT
-    """
-    state.append(TonPunkPurchase(
-        name=nft['name'],
-        price=None if nft['price'] is None else int(math.ceil(nft['price'])),
-        address=nft['address'], owner=nft['owner']['wallet_address'],
-        is_selling=nft['is_selling'])
-    )
+        :Args:
+         - page: int - number of the page with NFTs
+        """
+        async with aiohttp.ClientSession() as session:
+            response = await session.post(
+                url=URL,
+                cookies=cookies,
+                headers=headers,
+                data=data(page, self.__nft_limit_per_page)
+            )
+            await self.__parse_nfts(await response.json())
 
+    async def __parse_nfts(self, json_response: Any) -> None:
+        """
+        Async call to _parse_nft()
 
-def _get_purchased_nfts(previous_ton_punks_state: List[TonPunkPurchase],
-                        current_ton_punks_state: List[TonPunkPurchase]) -> List[TonPunkPurchase]:
-    """
-    Compare previous and current states with TON PUNKS
-    Looking for the TON PUNKS state change
-    Checks if TON PUNK matches the conditions
+        :Args:
+         - json_response: Any - response from page in json format
+        """
+        await asyncio.gather(*[self.__parse_nft(nft) for nft in json_response['data']])
 
-    :Args:
-     - previous_ton_punks_state: List[TonPunkPurchase] - previous TON PUNKS state
-     - current_ton_punks_state: List[TonPunkPurchase] - current TON PUNKS state
+    async def __parse_nft(self, nft: Dict[str, Any]) -> None:
+        """
+        Parse NFT to TonPunkPurchase and append it to the ${VERSION}_TON_PUNKS_STATE
 
-    :Return:
-     - List[TonPunkPurchase] - return matches TON PUNKS
-    """
-    purchases_ton_punks: List[TonPunkPurchase] = []
+        :Args:
+         - nft: Dict[str, Any] - unparsed NFT
+        """
 
-    for matched in (current for current in enumerate(current_ton_punks_state) if
-                    current[1].is_selling and
-                    current[1].price != previous_ton_punks_state[current[0]].price):
-        purchases_ton_punks.append(matched[1])
+        state = self.__current_ton_punks_state if self.__is_current_state else self.__previous_ton_punks_state
 
-    return purchases_ton_punks
+        state.append(TonPunkPurchase(
+            name=nft['name'],
+            price=None if nft['price'] is None else int(math.ceil(nft['price'])),
+            address=nft['address'], owner=nft['owner']['wallet_address'],
+            is_selling=nft['is_selling'])
+        )
 
+    def __get_purchased_nfts(self) -> List[TonPunkPurchase]:
+        """
+        Compare previous and current states with TON PUNKS
+        Looking for the TON PUNKS state change
+        Checks if TON PUNK matches the conditions
 
-def streaming_of_purchased_nfts() -> None:
-    """
-    Main application
-    Streaming new purchases TON PUNKS NFTs
-    """
-    backup_previous_ton_punks_state: List[TonPunkPurchase] = []
-    previous_ton_punks_state: List[TonPunkPurchase] = []
-    current_ton_punks_state: List[TonPunkPurchase] = []
+        :Return:
+         - List[TonPunkPurchase] - return matches TON PUNKS
+        """
+        purchases_ton_punks: List[TonPunkPurchase] = []
 
-    logger.info('Start streaming new purchases TON PUNKS NFTs')
+        for matched in (current for current in enumerate(self.__current_ton_punks_state) if
+                        current[1].is_selling and
+                        current[1].price != self.__previous_ton_punks_state[current[0]].price):
+            purchases_ton_punks.append(matched[1])
 
-    while True:
-        try:
-            asyncio.run(_gather_data(256, 21, previous_ton_punks_state)) if not previous_ton_punks_state \
-                else asyncio.run(_gather_data(256, 21, current_ton_punks_state))
+        return purchases_ton_punks
 
-            if not current_ton_punks_state:
-                asyncio.run(_gather_data(256, 21, current_ton_punks_state))
-        except Exception as e:
-            logger.error(e)
-            previous_ton_punks_state = backup_previous_ton_punks_state
-            current_ton_punks_state = []
-            continue
+    def streaming_of_purchased_nfts(self) -> None:
+        """
+        Main application
+        Streaming new purchases TON PUNKS NFTs
+        """
+        logger.info('Start streaming new purchases TON PUNKS NFTs')
 
-        previous_ton_punks_state = sorted(previous_ton_punks_state, key=lambda punk: punk.name)
-        current_ton_punks_state = sorted(current_ton_punks_state, key=lambda punk: punk.name)
+        while True:
+            try:
+                asyncio.run(self.__gather_data(False)) \
+                    if not self.__previous_ton_punks_state \
+                    else asyncio.run(self.__gather_data(True))
 
-        purchases_ton_punks = _get_purchased_nfts(previous_ton_punks_state, current_ton_punks_state)
+                if not self.__current_ton_punks_state:
+                    asyncio.run(self.__gather_data(True))
+            except Exception as e:
+                logger.error(e)
 
-        if purchases_ton_punks:
-            logger.info(f'Found {len(purchases_ton_punks)} new purchases TON PUNKS')
+                self.__previous_ton_punks_state = self.__backup_ton_punks_state
+                self.__previous_ton_punks_state = []
 
-        previous_ton_punks_state = current_ton_punks_state
-        backup_previous_ton_punks_state = previous_ton_punks_state
-        current_ton_punks_state = []
+                continue
 
+            self.__previous_ton_punks_state = sorted(self.__previous_ton_punks_state, key=lambda punk: punk.name)
+            self.__current_ton_punks_state = sorted(self.__current_ton_punks_state, key=lambda punk: punk.name)
 
-if __name__ == "__main__":
-    streaming_of_purchased_nfts()
+            purchases_ton_punks = self.__get_purchased_nfts()
+
+            if purchases_ton_punks:
+                logger.info(f'Found {len(purchases_ton_punks)} new purchases TON PUNKS')
+
+            self.__previous_ton_punks_state = self.__current_ton_punks_state
+            self.__backup_ton_punks_state = self.__previous_ton_punks_state
+            self.__current_ton_punks_state = []
