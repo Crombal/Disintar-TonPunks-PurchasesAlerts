@@ -163,7 +163,7 @@ class TonPunkPurchaseChecker:
                 self.__config.reset_csrf()
 
                 self.__previous_ton_punks_state = self.__backup_ton_punks_state
-                self.__previous_ton_punks_state = []
+                self.__current_ton_punks_state = []
 
                 continue
 
