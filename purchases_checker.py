@@ -1,3 +1,5 @@
+# !/usr/bin/env python
+"""Script for streaming purchased TON PUNKS NFTs."""
 import asyncio
 import aiohttp
 import math
@@ -87,6 +89,7 @@ class TonPunkPurchaseChecker:
         :Args:
          - page: int - number of the page with NFTs
         """
+
         async with aiohttp.ClientSession() as session:
             response = await session.post(
                 url=URL,
@@ -103,6 +106,7 @@ class TonPunkPurchaseChecker:
         :Args:
          - json_response: Any - response from page in json format
         """
+
         await asyncio.gather(*[self.__parse_nft(nft) for nft in json_response['data']])
 
     async def __parse_nft(self, nft: Dict[str, Any]) -> None:
@@ -131,6 +135,7 @@ class TonPunkPurchaseChecker:
         :Return:
          - List[TonPunkPurchase] - return matches TON PUNKS
         """
+
         purchases_ton_punks: List[TonPunkPurchase] = []
 
         for matched in (current for current in enumerate(self.__current_ton_punks_state) if
@@ -145,6 +150,7 @@ class TonPunkPurchaseChecker:
         Main application
         Streaming new purchases TON PUNKS NFTs
         """
+
         logger.info('Start streaming new purchases TON PUNKS NFTs')
 
         while True:
