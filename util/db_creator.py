@@ -217,15 +217,3 @@ class TonPunkDBCreator:
                 json_db,
                 cls=TonPunkEncoder
             )
-
-
-def main() -> None:
-    """
-    Run script for loading DB of TON PUNKS NFTs
-    """
-
-    TonPunkDBCreator(256, 21, 129).create_db()
-
-
-if __name__ == "__main__":
-    main()
